@@ -1,8 +1,10 @@
 package org.sezavar.android.sunshine.app;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -36,6 +38,7 @@ import Helper.WeatherDataParser;
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment {
+    private static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private ArrayAdapter<String> adapter;
 
     public MainActivityFragment() {
@@ -60,22 +63,37 @@ public class MainActivityFragment extends Fragment {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
-            fetchWeatherTask.execute("9940");
+            updateWeather();
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+
+    private void updateWeather() {
+        FetchWeatherTask fetchWeatherTask = new FetchWeatherTask();
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String location = prefs.getString(getString(R.string.pref_location_key), getString(R.string.pref_location_default_value));
+        fetchWeatherTask.execute(location);
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateWeather();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        ArrayList<String> fakeForecastItems = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-            fakeForecastItems.add((i + 1) + ". Day - status - " + (20 + i) + "/" + (20 - i));
-        }
-        adapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_forecast, R.id.list_item_forcast_textview, fakeForecastItems);
+        adapter = new ArrayAdapter<String>(
+                getActivity(),
+                R.layout.list_item_forecast,
+                R.id.list_item_forcast_textview,
+                new ArrayList<String>());
         ListView listOfDays = (ListView) rootView.findViewById(R.id.listview_forecast);
         listOfDays.setAdapter(adapter);
 
@@ -83,8 +101,8 @@ public class MainActivityFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String forecast=adapter.getItem(position);
-                startActivity(new Intent(getActivity(),DetailedActivity.class).putExtra(Intent.EXTRA_TEXT,forecast));
+                String forecast = adapter.getItem(position);
+                startActivity(new Intent(getActivity(), DetailedActivity.class).putExtra(Intent.EXTRA_TEXT, forecast));
 
 //                Toast.makeText(getActivity(), adapter.getItem(position),
 //                        Toast.LENGTH_SHORT).show();
@@ -161,7 +179,7 @@ public class MainActivityFragment extends Fragment {
             }
 
             try {
-                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numOfDays);
+                return WeatherDataParser.getWeatherDataFromJson(forecastJsonStr, numOfDays, getActivity());
             } catch (JSONException e) {
                 Log.e(LOG_TAG, e.getMessage(), e);
                 e.printStackTrace();
