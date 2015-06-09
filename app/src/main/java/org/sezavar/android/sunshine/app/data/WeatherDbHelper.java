@@ -10,7 +10,7 @@ import org.sezavar.android.sunshine.app.data.WeatherContract.LocationEntry;
 /**
  * Created by amir on 6/1/15.
  */
-public class WeatherDbHelper extends SQLiteOpenHelper {
+public class  WeatherDbHelper extends SQLiteOpenHelper {
     static final String DATA_BASE_NAME = "weather.db";
     private static final int DATABASE_VERSION = 2;
 
