@@ -1,8 +1,11 @@
 package Helper;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
 import android.util.Log;
@@ -94,7 +97,7 @@ public class WeatherDataParser {
         double cityLatitude = cityCoord.getDouble(OWM_LATITUDE);
         double cityLongitude = cityCoord.getDouble(OWM_LONGITUDE);
 
-        long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude);
+        long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude,context);
 
         Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
         // OWM returns daily forecasts based upon the local time of the city that is being
@@ -197,14 +200,14 @@ public class WeatherDataParser {
 
     }
 
-    public static String[] convertContentValuesToUXFormat(Vector<ContentValues> cvv, Context mConetext) {
+    public static String[] convertContentValuesToUXFormat(Vector<ContentValues> cvv, Context mContext) {
         String[] resultStrs = new String[cvv.size()];
         for (int i = 0; i < cvv.size(); i++) {
             ContentValues weatherValues = cvv.elementAt(i);
             String highAndLow = formatHighLows(
                     weatherValues.getAsDouble(WeatherContract.WeatherEntry.COLUMN_MAX_TEMP),
                     weatherValues.getAsDouble(WeatherContract.WeatherEntry.COLUMN_MIN_TEMP),
-                    mConetext);
+                    mContext);
             resultStrs[i] = getReadableDateString(
                     weatherValues.getAsLong(WeatherContract.WeatherEntry.COLUMN_DATE)) +
                     "-" + weatherValues.getAsString(WeatherContract.WeatherEntry.COLUMN_SHORT_DESC) +
@@ -213,9 +216,33 @@ public class WeatherDataParser {
         return resultStrs;
     }
 
-    private final static long addLocation(String locationSetting, String cityName, double lat, double lon) {
-        return -1;
-    }
 
+    private final static long addLocation(String locationSetting, String cityName, double lat, double lon,Context mContext) {
+        long locId;
+
+        Cursor locationCursor=mContext.getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI,
+                new String[]{WeatherContract.LocationEntry._ID},
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING+" = ? ",
+                new String[]{locationSetting},
+                null);
+        if(locationCursor.moveToFirst()){
+            int locIdIndex=locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
+            locId=locationCursor.getLong(locIdIndex);
+        }else{
+            ContentValues locValues=new ContentValues();
+            locValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,locationSetting);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME,cityName);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT,lat);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG,lon);
+
+            Uri insertedUri=mContext.getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI,locValues);
+            locId= ContentUris.parseId(insertedUri);
+
+        }
+
+        locationCursor.close();
+
+        return locId;
+    }
 
 }
