@@ -5,6 +5,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.text.format.Time;
@@ -97,7 +98,7 @@ public class WeatherDataParser {
         double cityLatitude = cityCoord.getDouble(OWM_LATITUDE);
         double cityLongitude = cityCoord.getDouble(OWM_LONGITUDE);
 
-        long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude,context);
+        long locationId = addLocation(locationSetting, cityName, cityLatitude, cityLongitude, context);
 
         Vector<ContentValues> cVVector = new Vector<ContentValues>(weatherArray.length());
         // OWM returns daily forecasts based upon the local time of the city that is being
@@ -170,30 +171,31 @@ public class WeatherDataParser {
 
             cVVector.add(weatherValues);
         }
-            if(cVVector.size()>0){
-                // Student: call bulkInsert to add the weatherEntries to the database here
+        if (cVVector.size() > 0) {
+            ContentValues[] cvArray=new ContentValues[cVVector.size()];
+            context.getContentResolver().bulkInsert(WeatherEntry.CONTENT_URI, cVVector.toArray(cvArray ));
+        }
+
+        String sortOrder = WeatherEntry.COLUMN_DATE + " ASC";
+
+
+        // Students: Uncomment the next lines to display what what you stored in the bulkInsert
+
+            Cursor cur = context.getContentResolver().query(WeatherEntry.CONTENT_URI,
+                    null, null, null, sortOrder);
+
+            cVVector = new Vector<ContentValues>(cur.getCount());
+            if ( cur.moveToFirst() ) {
+                do {
+                    ContentValues cv = new ContentValues();
+                    DatabaseUtils.cursorRowToContentValues(cur, cv);
+                    cVVector.add(cv);
+                } while (cur.moveToNext());
             }
 
-            String sortOrder=WeatherEntry.COLUMN_DATE+" ASC";
+        Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Inserted");
 
-
-            // Students: Uncomment the next lines to display what what you stored in the bulkInsert
-
-//            Cursor cur = mContext.getContentResolver().query(weatherForLocationUri,
-//                    null, null, null, sortOrder);
-//
-//            cVVector = new Vector<ContentValues>(cur.getCount());
-//            if ( cur.moveToFirst() ) {
-//                do {
-//                    ContentValues cv = new ContentValues();
-//                    DatabaseUtils.cursorRowToContentValues(cur, cv);
-//                    cVVector.add(cv);
-//                } while (cur.moveToNext());
-//            }
-
-            Log.d(LOG_TAG, "FetchWeatherTask Complete. " + cVVector.size() + " Inserted");
-
-            String[] resultStrs = convertContentValuesToUXFormat(cVVector,context);
+        String[] resultStrs = convertContentValuesToUXFormat(cVVector, context);
 
 
         return resultStrs;
@@ -217,26 +219,26 @@ public class WeatherDataParser {
     }
 
 
-    private final static long addLocation(String locationSetting, String cityName, double lat, double lon,Context mContext) {
+    private final static long addLocation(String locationSetting, String cityName, double lat, double lon, Context mContext) {
         long locId;
 
-        Cursor locationCursor=mContext.getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI,
+        Cursor locationCursor = mContext.getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI,
                 new String[]{WeatherContract.LocationEntry._ID},
-                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING+" = ? ",
+                WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? ",
                 new String[]{locationSetting},
                 null);
-        if(locationCursor.moveToFirst()){
-            int locIdIndex=locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
-            locId=locationCursor.getLong(locIdIndex);
-        }else{
-            ContentValues locValues=new ContentValues();
-            locValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING,locationSetting);
-            locValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME,cityName);
-            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT,lat);
-            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG,lon);
+        if (locationCursor.moveToFirst()) {
+            int locIdIndex = locationCursor.getColumnIndex(WeatherContract.LocationEntry._ID);
+            locId = locationCursor.getLong(locIdIndex);
+        } else {
+            ContentValues locValues = new ContentValues();
+            locValues.put(WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING, locationSetting);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_CITY_NAME, cityName);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LAT, lat);
+            locValues.put(WeatherContract.LocationEntry.COLUMN_COORD_LONG, lon);
 
-            Uri insertedUri=mContext.getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI,locValues);
-            locId= ContentUris.parseId(insertedUri);
+            Uri insertedUri = mContext.getContentResolver().insert(WeatherContract.LocationEntry.CONTENT_URI, locValues);
+            locId = ContentUris.parseId(insertedUri);
 
         }
 
