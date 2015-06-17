@@ -24,6 +24,17 @@ import org.sezavar.android.sunshine.app.data.WeatherContract;
  * A placeholder fragment containing a simple view.
  */
 public class MainActivityFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
+    // must change.
+    static final int COL_WEATHER_ID = 0;
+    static final int COL_WEATHER_DATE = 1;
+    static final int COL_WEATHER_DESC = 2;
+    static final int COL_WEATHER_MAX_TEMP = 3;
+    static final int COL_WEATHER_MIN_TEMP = 4;
+    static final int COL_LOCATION_SETTING = 5;
+    static final int COL_WEATHER_CONDITION_ID = 6;
+    static final int COL_COORD_LAT = 7;
+    static final int COL_COORD_LONG = 8;
     private static final String LOG_TAG = MainActivityFragment.class.getSimpleName();
     private static final int FORECAST_LOADER_ID = 0;
     private static final String[] FORECAST_COLUMNS = {
@@ -43,18 +54,6 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
             WeatherContract.LocationEntry.COLUMN_COORD_LAT,
             WeatherContract.LocationEntry.COLUMN_COORD_LONG
     };
-
-    // These indices are tied to FORECAST_COLUMNS.  If FORECAST_COLUMNS changes, these
-    // must change.
-    static final int COL_WEATHER_ID = 0;
-    static final int COL_WEATHER_DATE = 1;
-    static final int COL_WEATHER_DESC = 2;
-    static final int COL_WEATHER_MAX_TEMP = 3;
-    static final int COL_WEATHER_MIN_TEMP = 4;
-    static final int COL_LOCATION_SETTING = 5;
-    static final int COL_WEATHER_CONDITION_ID = 6;
-    static final int COL_COORD_LAT = 7;
-    static final int COL_COORD_LONG = 8;
     //    private ArrayAdapter<String> adapter;
     private ForecastAdapter mForecastAdapter;
 
@@ -94,12 +93,11 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
         fetchWeatherTask.execute(location);
     }
 
-
-    @Override
-    public void onStart() {
-        super.onStart();
+    void onLocationChanged() {
         updateWeather();
+        getLoaderManager().restartLoader(FORECAST_LOADER_ID, null, this);
     }
+
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {

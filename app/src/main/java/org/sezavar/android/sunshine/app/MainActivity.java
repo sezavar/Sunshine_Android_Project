@@ -20,11 +20,20 @@ import java.net.URL;
 public class MainActivity extends ActionBarActivity {
 
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
+    private final String MAINACTIVITYFRAGMENT_TAG = "MAFTAG";
+
+    private String mLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        mLocation = Utility.getPreferredLocation(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .add(R.id.container, new MainActivityFragment(), MAINACTIVITYFRAGMENT_TAG)
+                    .commit();
+        }
     }
 
 
@@ -69,4 +78,17 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        String loc=Utility.getPreferredLocation(this);
+        if(loc!=null && ! loc.equals(mLocation)){
+            MainActivityFragment mf= (MainActivityFragment) getSupportFragmentManager()
+                    .findFragmentByTag(MAINACTIVITYFRAGMENT_TAG);
+            if(mf!=null){
+                mf.onLocationChanged();
+            }
+            mLocation=loc;
+        }
+    }
 }
