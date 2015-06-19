@@ -135,7 +135,7 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
         mForecastStr = String.format("%s - %s - %s/%s", dateStr, weatherDesc, highStr, lowStr);
         TextView detailedTextView = (TextView) getView().findViewById(R.id.forcast_text);
         detailedTextView.setText(mForecastStr);
-        if (mForecastStr != null) {
+        if (mShareActionProvider != null) {
             mShareActionProvider.setShareIntent(createShareForecastIntent());
         }
     }
