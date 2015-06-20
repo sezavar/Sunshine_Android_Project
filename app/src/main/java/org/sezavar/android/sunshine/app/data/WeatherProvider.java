@@ -210,7 +210,6 @@ public class WeatherProvider extends ContentProvider {
 
         }
         getContext().getContentResolver().notifyChange(uri,null);
-        db.close();
         return returnUri;
     }
 
@@ -234,7 +233,6 @@ public class WeatherProvider extends ContentProvider {
         if(numOfAffectedRows>0){
             getContext().getContentResolver().notifyChange(uri,null);
         }
-        db.close();
         return numOfAffectedRows;
     }
 
@@ -257,7 +255,6 @@ public class WeatherProvider extends ContentProvider {
         if(numOfAffectedRows>0 ){
             getContext().getContentResolver().notifyChange(uri,null);
         }
-        db.close();
         return numOfAffectedRows;
     }
 
@@ -282,10 +279,8 @@ public class WeatherProvider extends ContentProvider {
                     db.endTransaction();
                 }
                 getContext().getContentResolver().notifyChange(uri, null);
-                db.close();
                 return returnCount;
             default:
-                db.close();
                 return super.bulkInsert(uri, values);
         }
 
