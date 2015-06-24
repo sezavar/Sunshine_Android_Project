@@ -130,8 +130,8 @@ public class DetailedActivityFragment extends Fragment implements LoaderManager.
         String dateStr = Utility.formatDate(data.getLong(COL_WEATHER_DATE));
         String weatherDesc = data.getString(COL_WEATHER_DESC);
         boolean isMetric = Utility.isMetric(getActivity());
-        String highStr = Utility.formatTemperature(data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
-        String lowStr = Utility.formatTemperature(data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
+        String highStr = Utility.formatTemperature(getActivity(),data.getDouble(COL_WEATHER_MAX_TEMP), isMetric);
+        String lowStr = Utility.formatTemperature(getActivity(),data.getDouble(COL_WEATHER_MIN_TEMP), isMetric);
         mForecastStr = String.format("%s - %s - %s/%s", dateStr, weatherDesc, highStr, lowStr);
         TextView detailedTextView = (TextView) getView().findViewById(R.id.forcast_text);
         detailedTextView.setText(mForecastStr);
