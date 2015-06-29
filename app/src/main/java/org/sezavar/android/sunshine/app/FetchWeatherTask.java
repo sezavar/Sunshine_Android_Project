@@ -50,7 +50,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
             Uri builtUri = Uri.parse(BASE_URL).buildUpon()
                     .appendQueryParameter(QUERY_PARAM, zipCode)
-                    .appendQueryParameter(FORMAT_PARAM, "jason")
+                    .appendQueryParameter(FORMAT_PARAM, "json")
                     .appendQueryParameter(UNITS_PARAM, "metric")
                     .appendQueryParameter(DAYS_PARAM, "14")
                     .build();
@@ -103,7 +103,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
 
     private void getWeatherDataFromJson(String forecastJsonStr, String locationSetting, Context context)
             throws JSONException {
-
+        Log.i(LOG_TAG,"getWeatherDataFromJson1");
         // These are the names of the JSON objects that need to be extracted.
         final String OWM_CITY = "city";
         final String OWM_CITY_NAME = "name";
@@ -121,7 +121,8 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         final String OWM_MAX = "max";
         final String OWM_MIN = "min";
         final String OWM_DESCRIPTION = "main";
-
+        Log.i(LOG_TAG,"getWeatherDataFromJson2\n"+forecastJsonStr
+        );
         JSONObject forecastJson = new JSONObject(forecastJsonStr);
         JSONArray weatherArray = forecastJson.getJSONArray(OWM_LIST);
 
@@ -209,17 +210,19 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         int numOfInserted = 0;
         if (cVVector.size() > 0) {
             ContentValues[] cvArray = new ContentValues[cVVector.size()];
+            Log.i(LOG_TAG,"getWeatherDataFromJson2");
             numOfInserted = context.getContentResolver().bulkInsert(WeatherContract.WeatherEntry.CONTENT_URI, cVVector.toArray(cvArray));
+            Log.i(LOG_TAG,"getWeatherDataFromJson3");
         }
 
-        Log.d(LOG_TAG, "FetchWeatherTask Complete. " + numOfInserted + " Inserted");
+        Log.i(LOG_TAG, "FetchWeatherTask Complete. " + numOfInserted + " Inserted");
 
     }
 
 
     private long addLocation(String locationSetting, String cityName, double lat, double lon, Context mContext) {
         long locId;
-
+        Log.i(LOG_TAG,"addLocation1");
         Cursor locationCursor = mContext.getContentResolver().query(WeatherContract.LocationEntry.CONTENT_URI,
                 new String[]{WeatherContract.LocationEntry._ID},
                 WeatherContract.LocationEntry.COLUMN_LOCATION_SETTING + " = ? ",
@@ -241,7 +244,7 @@ public class FetchWeatherTask extends AsyncTask<String, Void, Void> {
         }
 
         locationCursor.close();
-
+        Log.i(LOG_TAG, "addLocation2");
         return locId;
     }
 }

@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -153,11 +154,15 @@ public class MainActivityFragment extends Fragment implements LoaderManager.Load
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        Log.i(LOG_TAG, "onLoadFinished1");
         mForecastAdapter.swapCursor(data);
+        Log.i(LOG_TAG, "onLoadFinished2");
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.i(LOG_TAG,"onLoaderReset1");
         mForecastAdapter.swapCursor(null);
+        Log.i(LOG_TAG, "onLoaderReset2");
     }
 }
